@@ -8,20 +8,26 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: ""
+      username: "",
+      searchParam: "",
+      checkValid: true
     };
   }
 
   componentDidMount() {
     this.state = {
-      username: "DevWasi"
+      username: "DevWasi",
+      searchParam: "DevWasi"
     };
     this.getUser(this.username);
   }
 
   getUser(username) {
     fetch(`https://api.github.com/users/${this.state.username}`)
-      .then(res => res.json())
+      .then(
+        res => res.json(),
+        this.res === 404 ? this.setState({ checkValid: false }) : null
+      )
       .then(data => {
         this.setState({
           username: data
@@ -31,12 +37,19 @@ class App extends Component {
 
   handleSubmit = event => {
     event.preventDefault();
-    this.getUser();
+    this.setState(
+      state => ({
+        username: state.searchParam
+      }),
+      function() {
+        this.getUser();
+      }
+    );
   };
 
   handleChange = event => {
     this.setState({
-      username: event.target.value
+      searchParam: event.target.value
     });
   };
 
@@ -44,11 +57,16 @@ class App extends Component {
     return (
       <div>
         <NavBar />
-        <Form
-          username={this.state.username}
-          handleChange={this.handleChange}
-          handleSubmit={this.handleSubmit}
-        />
+
+        {this.state.checkValid ? (
+          <Form
+            username={this.state.username}
+            handleChange={this.handleChange}
+            handleSubmit={this.handleSubmit}
+          />
+        ) : (
+          alert("User Does't Exist")
+        )}
         <Cards username={this.state.username} />
       </div>
     );
